@@ -8,6 +8,10 @@ from passlib.context import CryptContext
 from pydantic import BaseModel
 
 from fastapi import APIRouter
+from sqlalchemy import select
+
+from database import local_session
+from models import User
 
 router = APIRouter()
 
@@ -18,61 +22,55 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 
-fake_users_db = {
-    "johndoe": {
-        "username": "johndoe",
-        "full_name": "John Doe",
-        "email": "johndoe@example.com",
-        "hashed_password": "$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW",
-        "disabled": False,
-    }
-}
-
-
 class Token(BaseModel):
     access_token: str
     token_type: str
+    expires_in_minutes: int
 
 
 class TokenData(BaseModel):
     username: Union[str, None] = None
 
 
-class User(BaseModel):
+class UserDTO(BaseModel):
     username: str
     email: Union[str, None] = None
     full_name: Union[str, None] = None
     disabled: Union[bool, None] = None
 
 
-class UserInDB(User):
-    hashed_password: str
+class UserInDB(UserDTO):
+    password: str
 
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+#pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
-def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password)
+#def verify_password(plain_password, hashed_password):
+#    return pwd_context.verify(plain_password, hashed_password)
+
+#def get_password_hash(password):
+#    return pwd_context.hash(password)
+
+def verify_password(plain_password, database_password):
+    return plain_password == database_password
+
+def get_user(email: str):
+    print(email)
+    result = local_session.query(User).filter(User.email == email).one()
+    dto = UserInDB(username=result.username, password=result.password)
+    dto.email = email
+    dto.full_name = result.ime + " " + result.prezime
+    return dto
 
 
-def get_password_hash(password):
-    return pwd_context.hash(password)
-
-
-def get_user(db, username: str):
-    if username in db:
-        user_dict = db[username]
-        return UserInDB(**user_dict)
-
-
-def authenticate_user(fake_db, username: str, password: str):
-    user = get_user(fake_db, username)
+def authenticate_user(username: str, password: str):
+    user = get_user(username)
     if not user:
         return False
-    if not verify_password(password, user.hashed_password):
+    if not verify_password(password, user.password):
         return False
     return user
 
@@ -102,13 +100,13 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         token_data = TokenData(username=username)
     except JWTError:
         raise credentials_exception
-    user = get_user(fake_users_db, username=token_data.username)
+    user = get_user(token_data.username)
     if user is None:
         raise credentials_exception
     return user
 
 
-async def get_current_active_user(current_user: User = Depends(get_current_user)):
+async def get_current_active_user(current_user: UserInDB = Depends(get_current_user)):
     if current_user.disabled:
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
@@ -116,7 +114,7 @@ async def get_current_active_user(current_user: User = Depends(get_current_user)
 
 @router.post("/token", response_model=Token, tags=["auth"])
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
-    user = authenticate_user(fake_users_db, form_data.username, form_data.password)
+    user = authenticate_user(form_data.username, form_data.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -127,14 +125,14 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     access_token = create_access_token(
         data={"sub": user.username}, expires_delta=access_token_expires
     )
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {"access_token": access_token, "token_type": "bearer", "expires_in_minutes":ACCESS_TOKEN_EXPIRE_MINUTES}
 
 
-@router.get("/users/me/", response_model=User, tags=["auth"])
-async def read_users_me(current_user: User = Depends(get_current_active_user)):
+@router.get("/users/me/", response_model=UserInDB, tags=["auth"])
+async def read_users_me(current_user: UserInDB = Depends(get_current_active_user)):
     return current_user
 
 
 @router.get("/users/me/items/", tags=["auth"])
-async def read_own_items(current_user: User = Depends(get_current_active_user)):
+async def read_own_items(current_user: UserInDB = Depends(get_current_active_user)):
     return [{"item_id": "Foo", "owner": current_user.username}]
