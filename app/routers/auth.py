@@ -9,7 +9,7 @@ from pydantic import BaseModel
 
 from fastapi import APIRouter
 from sqlalchemy import select
-
+from app.dto import UserDTO
 from app.database import local_session
 from app.models import User
 
@@ -32,17 +32,6 @@ class TokenData(BaseModel):
     username: Union[str, None] = None
 
 
-class UserDTO(BaseModel):
-    username: str
-    email: Union[str, None] = None
-    full_name: Union[str, None] = None
-    disabled: Union[bool, None] = None
-
-
-class UserInDB(UserDTO):
-    password: str
-
-
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
@@ -59,10 +48,7 @@ def get_password_hash(password):
 def get_user(email: str):
     print(email)
     result = local_session.query(User).filter(User.email == email).one()
-    dto = UserInDB(username=result.username, password=result.password)
-    dto.email = email
-    dto.full_name = result.ime + " " + result.prezime
-    return dto
+    return result
 
 
 def authenticate_user(username: str, password: str):
@@ -105,7 +91,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
     return user
 
 
-async def get_current_active_user(current_user: UserInDB = Depends(get_current_user)):
+async def get_current_active_user(current_user: User = Depends(get_current_user)):
     if current_user.disabled:
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
@@ -122,14 +108,20 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
         )
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": user.username}, expires_delta=access_token_expires
+        data={"sub": user.email}, expires_delta=access_token_expires
     )
     return {"access_token": access_token, "token_type": "bearer", "expires_in_minutes":ACCESS_TOKEN_EXPIRE_MINUTES}
 
 
-@router.get("/users/me/", response_model=UserDTO, tags=["auth"])
-async def read_users_me(current_user: UserInDB = Depends(get_current_user)):
-    return current_user
+@router.get("/users/me", response_model=UserDTO, tags=["auth"])
+async def read_users_me(current_user: User = Depends(get_current_user)):
+    user_dto = UserDTO(id=current_user.id, profile_id=current_user.profile.id,
+                       picture=current_user.profile.picture, description= current_user.profile.description,
+                       private=current_user.profile.private, email=current_user.email,
+                       username=current_user.username, password=current_user.password,
+                       ime=current_user.ime, prezime=current_user.prezime, telefon=current_user.telefon,
+                       datumRodjenja=current_user.datumRodjenja, pol=current_user.pol, role=current_user.role)
+    return user_dto
 
 
 if __name__ == '__main__':

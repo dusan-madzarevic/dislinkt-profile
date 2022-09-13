@@ -5,6 +5,10 @@ from pydantic import BaseModel
 
 class UserDTO(BaseModel):
     id: int
+    profile_id: int
+    picture: str
+    description: str
+    private: bool
     email: str
     username: str
     password: str
@@ -13,3 +17,4 @@ class UserDTO(BaseModel):
     telefon: str
     datumRodjenja: datetime.date
     pol: str
+    role: str
