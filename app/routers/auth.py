@@ -10,8 +10,8 @@ from pydantic import BaseModel
 from fastapi import APIRouter
 from sqlalchemy import select
 
-from database import local_session
-from models import User
+from app.database import local_session
+from app.models import User
 
 router = APIRouter()
 
@@ -43,19 +43,18 @@ class UserInDB(UserDTO):
     password: str
 
 
-#pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
-#def verify_password(plain_password, hashed_password):
-#    return pwd_context.verify(plain_password, hashed_password)
+def verify_password(plain_password, hashed_password):
+    return pwd_context.verify(plain_password, hashed_password)
 
-#def get_password_hash(password):
-#    return pwd_context.hash(password)
 
-def verify_password(plain_password, database_password):
-    return plain_password == database_password
+def get_password_hash(password):
+    return pwd_context.hash(password)
+
 
 def get_user(email: str):
     print(email)
@@ -128,11 +127,11 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     return {"access_token": access_token, "token_type": "bearer", "expires_in_minutes":ACCESS_TOKEN_EXPIRE_MINUTES}
 
 
-@router.get("/users/me/", response_model=UserInDB, tags=["auth"])
-async def read_users_me(current_user: UserInDB = Depends(get_current_active_user)):
+@router.get("/users/me/", response_model=UserDTO, tags=["auth"])
+async def read_users_me(current_user: UserInDB = Depends(get_current_user)):
     return current_user
 
 
-@router.get("/users/me/items/", tags=["auth"])
-async def read_own_items(current_user: UserInDB = Depends(get_current_active_user)):
-    return [{"item_id": "Foo", "owner": current_user.username}]
+if __name__ == '__main__':
+    print(get_password_hash("1234"))
+    print(get_password_hash("tronaca12"))
