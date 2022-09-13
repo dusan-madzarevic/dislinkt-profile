@@ -43,5 +43,5 @@ class Profile(Base):
                              primaryjoin=id==association_table.c.follower_id,
                              secondaryjoin=id==association_table.c.following_id,
                              backref="follower")
-    
+
     # following koga on prati, follower ko njega prati
