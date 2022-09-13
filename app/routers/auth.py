@@ -47,7 +47,7 @@ def get_password_hash(password):
 
 def get_user(email: str):
     print(email)
-    result = local_session.query(User).filter(User.email == email).one()
+    result = local_session.query(User).filter(User.email == email).first()
     return result
 
 
