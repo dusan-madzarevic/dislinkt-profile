@@ -18,6 +18,7 @@ class User(Base):
     datumRodjenja = Column(Date)
     pol = Column(String)
     role = Column(String(25), nullable=False)
+    profile = relationship("Profile", back_populates="user", uselist=False)
     # posts = relationship("Post", back_populates="author")
     # reactions = relationship("Reaction", back_populates="author")
 
