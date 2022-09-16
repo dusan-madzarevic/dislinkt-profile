@@ -1,12 +1,17 @@
 from pydantic import BaseModel, EmailStr
 
 class UserCreate(BaseModel):
+    email: str
     username: str
-    email: EmailStr
     password: str
-    first_name: str
-    last_name: str
-    phone: str
-    date_of_birth: str
-    gender: str
+    ime: str
+    prezime: str
+    telefon: str
+    datumRodjenja: str
+    pol: str
+
+
+class ProfileCreate(BaseModel):
+    user_id: str
+    private: bool
 
