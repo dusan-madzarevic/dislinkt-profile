@@ -9,10 +9,10 @@ from fastapi import Request
 import models
 from database import local_session, engine
 from dto import UserDTO
-from models import User
+from models import User, Profile
 from routers import auth
 
-from users import UserCreate
+from users import UserCreate, ProfileCreate
 from userform import UserCreateForm
 
 # def get_db():
@@ -77,22 +77,45 @@ async def register(request: UserCreate):
     user = User()
     user.username = request.username
     user.email = request.email
-    user.password = request.password
-    user.ime = request.first_name
-    user.prezime = request.last_name
-    user.telefon = request.phone
+    password = request.password
+    hashedpassword = auth.get_password_hash(password)
+    user.password = hashedpassword
+    user.ime = request.ime
+    user.prezime = request.prezime
+    user.telefon = request.telefon
     # user.datumRodjenja = datetime.date(req['datumRodjenja'])
-    date_time_str = request.date_of_birth
+    date_time_str = request.datumRodjenja
     date_time_obj = datetime.strptime(date_time_str, '%Y-%m-%d')
     user.datumRodjenja = datetime.date(date_time_obj)
-    user.pol = request.gender
+    user.pol = request.pol
     user.role = "reg_user"
     local_session.add(user)
     local_session.commit()
+    user_id = user.id
+    print(user_id)
 
     return {
+        "user_id": user_id,
         "code": "success",
         "message": "registration successful"
+    }
+
+@app.post("/profile")
+async def register(request: ProfileCreate):
+    profileDict = request.dict()
+    print(profileDict)
+    profile = Profile()
+    profile.user_id = request.user_id
+    profile.private = request.private
+    local_session.add(profile)
+    local_session.commit()
+    profile_id = profile.id
+    print(profile_id)
+
+    return {
+        "profile_id": profile_id,
+        "code": "success",
+        "message": "profile successfuly created"
     }
 
 
@@ -126,5 +149,5 @@ def print_hi(name):
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     models.Base.metadata.create_all(engine)
-    uvicorn.run(app, port=8000, host="0.0.0.0")
+    uvicorn.run(app, port=8001, host="0.0.0.0")
 
