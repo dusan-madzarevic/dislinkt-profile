@@ -3,7 +3,7 @@ from typing import Union
 import uvicorn
 from sqlalchemy.ext.declarative import declarative_base
 from starlette.middleware.cors import CORSMiddleware
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException
 from fastapi import Request
 
 import models
@@ -14,6 +14,7 @@ from routers import auth
 
 from users import UserCreate, ProfileCreate
 from userform import UserCreateForm
+
 
 # def get_db():
 #     try:
@@ -70,10 +71,27 @@ def read_item(item_id: int, q: Union[str, None] = None):
 #         "message": "registration successful"
 #     }
 
+
 @app.post("/register")
 async def register(request: UserCreate):
     userDict = request.dict()
     print(userDict)
+    hasErrors = False
+    errorList = ""
+    for db_user in local_session.query(User).all():
+        if db_user.email == request.email:
+            hasErrors = True
+            errorList += "User with this email already exists. "
+        if db_user.username == request.username:
+            hasErrors = True
+            errorList += "This username is not available. "
+
+    if hasErrors:
+        return {
+            "code": "exception",
+            "message": errorList
+        }
+
     user = User()
     user.username = request.username
     user.email = request.email
@@ -100,6 +118,7 @@ async def register(request: UserCreate):
         "message": "registration successful"
     }
 
+
 @app.post("/profile")
 async def register(request: ProfileCreate):
     profileDict = request.dict()
@@ -107,6 +126,8 @@ async def register(request: ProfileCreate):
     profile = Profile()
     profile.user_id = request.user_id
     profile.private = request.private
+    profile.picture = ""
+    profile.description = ""
     local_session.add(profile)
     local_session.commit()
     profile_id = profile.id

@@ -121,6 +121,11 @@ async def read_users_me(current_user: User = Depends(get_current_user)):
                        username=current_user.username, password=current_user.password,
                        ime=current_user.ime, prezime=current_user.prezime, telefon=current_user.telefon,
                        datumRodjenja=current_user.datumRodjenja, pol=current_user.pol, role=current_user.role)
+    # user_dto = UserDTO(id=current_user.id,
+    #                    email=current_user.email,
+    #                    username=current_user.username, password=current_user.password,
+    #                    ime=current_user.ime, prezime=current_user.prezime, telefon=current_user.telefon,
+    #                    datumRodjenja=current_user.datumRodjenja, pol=current_user.pol, role=current_user.role)
     return user_dto
 
 
