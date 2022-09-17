@@ -12,7 +12,7 @@ from dto import UserDTO
 from models import User, Profile
 from routers import auth
 
-from users import UserCreate, ProfileCreate
+from users import UserCreate, ProfileCreate, ProfileEdit
 from userform import UserCreateForm
 
 
@@ -137,6 +137,84 @@ async def register(request: ProfileCreate):
         "profile_id": profile_id,
         "code": "success",
         "message": "profile successfuly created"
+    }
+
+@app.get("/profile/{id}")
+async def get_profile(id):
+    profile = local_session.query(Profile).get(id);
+    return profile
+
+
+@app.put("/profile/edit/{profile_id}")
+async def edit_profile(profile_id: str, request: ProfileEdit):
+    profileDict = request.dict()
+    print(profileDict)
+    # profile = Profile()
+    # profile.user_id = request.user_id
+    # profile.private = request.private
+    # profile.picture = ""
+    # profile.description = ""
+    # local_session.add(profile)
+    # local_session.commit()
+    # profile_id = profile.id
+    # print(profile_id)
+
+
+    local_session.query(Profile).filter_by(id=profile_id).update({"description": request.description})
+    local_session.commit()
+
+    return {
+        "code": "success",
+        "message": "profile successfuly updated"
+    }
+
+
+@app.put("/users/{user_id}")
+async def edit_user(user_id: int, request: UserCreate):
+    userDict = request.dict()
+    print(userDict)
+
+    oldUser = local_session.query(User).get(user_id)
+    print(oldUser)
+
+    hasErrors = False
+    errorList = ""
+    for db_user in local_session.query(User).all():
+        if db_user.email == request.email and db_user.email != oldUser.email:
+            hasErrors = True
+            errorList += "User with this email already exists. "
+        if db_user.username == request.username and db_user.username != oldUser.username:
+            hasErrors = True
+            errorList += "This username is not available. "
+
+    if hasErrors:
+        return {
+            "code": "exception",
+            "message": errorList
+        }
+
+    user = User()
+    user.username = request.username
+    user.email = request.email
+    password = request.password
+    hashedpassword = auth.get_password_hash(password)
+    user.password = hashedpassword
+    user.ime = request.ime
+    user.prezime = request.prezime
+    user.telefon = request.telefon
+    # user.datumRodjenja = datetime.date(req['datumRodjenja'])
+    date_time_str = request.datumRodjenja
+    date_time_obj = datetime.strptime(date_time_str, '%Y-%m-%d')
+    user.datumRodjenja = datetime.date(date_time_obj)
+    user.pol = request.pol
+    user.role = "reg_user"
+
+    local_session.query(User).filter_by(id=user_id).update({"ime": request.ime})
+    local_session.commit()
+
+    return {
+        "code": "success",
+        "message": "update successful"
     }
 
 

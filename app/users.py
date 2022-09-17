@@ -15,3 +15,9 @@ class ProfileCreate(BaseModel):
     user_id: str
     private: bool
 
+
+class ProfileEdit(BaseModel):
+    user_id: str
+    private: bool
+    description: str
+
