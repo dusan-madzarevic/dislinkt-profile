@@ -149,19 +149,21 @@ async def get_profile(id):
 async def edit_profile(profile_id: str, request: ProfileEdit):
     profileDict = request.dict()
     print(profileDict)
-    # profile = Profile()
-    # profile.user_id = request.user_id
-    # profile.private = request.private
-    # profile.picture = ""
-    # profile.description = ""
-    # local_session.add(profile)
-    # local_session.commit()
-    # profile_id = profile.id
-    # print(profile_id)
-
 
     local_session.query(Profile).filter_by(id=profile_id).update({"description": request.description})
+    local_session.query(Profile).filter_by(id=profile_id).update({"private": request.private})
+
     local_session.commit()
+
+    return {
+        "code": "success",
+        "message": "profile successfuly updated"
+    }
+
+
+@app.put("/profile/{profile_id}/addEducation")
+async def edit_profile(profile_id: str, request: Request):
+
 
     return {
         "code": "success",
@@ -193,23 +195,17 @@ async def edit_user(user_id: int, request: UserCreate):
             "message": errorList
         }
 
-    user = User()
-    user.username = request.username
-    user.email = request.email
-    password = request.password
-    hashedpassword = auth.get_password_hash(password)
-    user.password = hashedpassword
-    user.ime = request.ime
-    user.prezime = request.prezime
-    user.telefon = request.telefon
-    # user.datumRodjenja = datetime.date(req['datumRodjenja'])
-    date_time_str = request.datumRodjenja
-    date_time_obj = datetime.strptime(date_time_str, '%Y-%m-%d')
-    user.datumRodjenja = datetime.date(date_time_obj)
-    user.pol = request.pol
-    user.role = "reg_user"
-
-    local_session.query(User).filter_by(id=user_id).update({"ime": request.ime})
+    local_session.query(User).filter_by(id=user_id).update({"email": request.email,
+                                                            "username": request.username,
+                                                            "ime": request.ime,
+                                                            "prezime": request.prezime,
+                                                            "telefon": request.telefon,
+                                                            "pol": request.pol})
+    # local_session.query(User).filter_by(id=user_id).update({"username": request.username})
+    # local_session.query(User).filter_by(id=user_id).update({"ime": request.ime})
+    # local_session.query(User).filter_by(id=user_id).update({"prezime": request.prezime})
+    # local_session.query(User).filter_by(id=user_id).update({"telefon": request.telefon})
+    # local_session.query(User).filter_by(id=user_id).update({"pol": request.pol})
     local_session.commit()
 
     return {
