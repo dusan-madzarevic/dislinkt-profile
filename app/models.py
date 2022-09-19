@@ -46,3 +46,18 @@ class Profile(Base):
                              backref="follower")
 
     # following koga on prati, follower ko njega prati
+    education = relationship("Education", back_populates="profile")
+
+
+
+class Education(Base):
+    __tablename__ = "education"
+    id = Column(Integer(), primary_key=True)
+    school = Column(String)
+    degree = Column(String)
+    start = Column(Date)
+    end = Column(Date)
+    profile_id = Column(Integer, ForeignKey("profiles.id"))
+    profile = relationship("Profile", back_populates="education")
+
+
