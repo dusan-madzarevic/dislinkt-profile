@@ -9,10 +9,10 @@ from fastapi import Request
 import models
 from database import local_session, engine
 from dto import UserDTO
-from models import User, Profile
+from models import User, Profile, Education
 from routers import auth
 
-from users import UserCreate, ProfileCreate, ProfileEdit
+from users import UserCreate, ProfileCreate, ProfileEdit, EducationCreate
 from userform import UserCreateForm
 
 
@@ -161,13 +161,52 @@ async def edit_profile(profile_id: str, request: ProfileEdit):
     }
 
 
-@app.put("/profile/{profile_id}/addEducation")
-async def edit_profile(profile_id: str, request: Request):
+@app.post("/profile/addEducation")
+async def add_Education(request: EducationCreate):
+    eduDict = request.dict()
+    print(eduDict)
+    education = Education()
+    education.profile_id = request.profile_id
+    education.school = request.school
+    education.degree = request.degree
 
+    start_date_str = request.start
+    start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
+    education.start = datetime.date(start_date)
+
+    end_date_str = request.end
+    end_date = datetime.strptime(end_date_str, '%Y-%m-%d')
+    education.end = datetime.date(end_date)
+
+    local_session.add(education)
+    local_session.commit()
+    education_id = education.id
+    print(education_id)
 
     return {
+        "education_id": education_id,
         "code": "success",
         "message": "profile successfuly updated"
+    }
+
+
+@app.get("/profile/{profile_id}/education")
+async def get_education(profile_id):
+    education_list = []
+    for education in local_session.query(Education).filter(Education.profile_id == profile_id):
+        education_list.append(education)
+
+    print(education_list)
+    return education_list
+
+
+@app.delete("/profile/education/{education_id}")
+async def delete_education(education_id):
+    local_session.query(Education).filter(Education.id == education_id).delete(synchronize_session="fetch")
+    local_session.commit()
+    return {
+        "code": "success",
+        "message": "successfuly deleted education"
     }
 
 

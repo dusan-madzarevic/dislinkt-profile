@@ -21,3 +21,10 @@ class ProfileEdit(BaseModel):
     private: bool
     description: str
 
+
+class EducationCreate(BaseModel):
+    profile_id: str
+    school: str
+    degree: str
+    start: str
+    end: str
