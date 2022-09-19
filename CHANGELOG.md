@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.2.0 (2022-09-19)
+### Feature
+* Update skills for user profile ([`e88a348`](https://github.com/dusan-madzarevic/dislinkt-profile/commit/e88a348cf8c4537a9f8ad0cb9e4480a58ee9f8f7))
+
 ## v0.1.1 (2022-09-19)
 ### Fix
 * **ci:** Downgraded semantic-release version ([`56a2b01`](https://github.com/dusan-madzarevic/dislinkt-profile/commit/56a2b012500f0455dbf15082b704948c724868a3))
