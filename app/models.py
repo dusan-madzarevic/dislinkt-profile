@@ -47,6 +47,7 @@ class Profile(Base):
 
     # following koga on prati, follower ko njega prati
     education = relationship("Education", back_populates="profile")
+    skills = relationship("Skill", back_populates="profile")
 
 
 
@@ -60,4 +61,11 @@ class Education(Base):
     profile_id = Column(Integer, ForeignKey("profiles.id"))
     profile = relationship("Profile", back_populates="education")
 
+
+class Skill(Base):
+    __tablename__ = "skills"
+    id = Column(Integer(), primary_key=True)
+    skillname = Column(String)
+    profile_id = Column(Integer, ForeignKey("profiles.id"))
+    profile = relationship("Profile", back_populates="skills")
 
