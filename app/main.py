@@ -9,12 +9,12 @@ from fastapi import Request
 import models
 from database import local_session, engine
 from dto import UserDTO
-from models import User, Profile, Education
+from models import User, Profile, Education, Skill
 from routers import auth
 
-from users import UserCreate, ProfileCreate, ProfileEdit, EducationCreate
+from users import UserCreate, ProfileCreate, ProfileEdit, EducationCreate, SkillCreate, PasswordChange
 from userform import UserCreateForm
-
+from routers.auth import verify_password
 
 # def get_db():
 #     try:
@@ -273,6 +273,67 @@ async def edit_user(user_id: int, request: UserCreate):
 #         "code": "success",
 #         "message": "registration successful"
 #     }
+
+
+@app.post("/profile/skills")
+async def add_skill(request: SkillCreate):
+    skillDict = request.dict()
+    print(skillDict)
+    skill = Skill()
+    skill.profile_id = request.profile_id
+    skill.skillname = request.skillname
+
+    local_session.add(skill)
+    local_session.commit()
+    skill_id = skill.id
+    print(skill_id)
+
+    return {
+        "skill_idi": skill_id,
+        "code": "success",
+        "message": "profile successfuly updated"
+    }
+
+
+@app.get("/profile/{profile_id}/skills")
+async def get_skills(profile_id):
+    skills_list = []
+    for skill in local_session.query(Skill).filter(Skill.profile_id == profile_id):
+        skills_list.append(skill)
+
+    print(skills_list)
+    return skills_list
+
+
+@app.delete("/profile/skills/{skill_id}")
+async def delete_skill(skill_id):
+    local_session.query(Skill).filter(Skill.id == skill_id).delete(synchronize_session="fetch")
+    local_session.commit()
+    return {
+        "code": "success",
+        "message": "successfuly deleted skill"
+    }
+
+@app.post("/user/password")
+async def change_password(request: PasswordChange):
+    passwordDict = request.dict()
+    print(passwordDict)
+
+    user_id = request.user_id
+    user = local_session.query(User).get(user_id)
+    if not verify_password(request.old, user.password):
+        return {
+            "code": "error",
+            "message": "invalid old password"
+        }
+    else:
+        local_session.query(User).filter_by(id=user_id).update({"password": request.new})
+        local_session.commit()
+        return {
+            "code": "success",
+            "message": "update successful"
+        }
+
 
 
 def print_hi(name):

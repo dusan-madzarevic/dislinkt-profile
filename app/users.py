@@ -28,3 +28,12 @@ class EducationCreate(BaseModel):
     degree: str
     start: str
     end: str
+
+class SkillCreate(BaseModel):
+    profile_id: str
+    skillname: str
+
+class PasswordChange(BaseModel):
+    user_id: str
+    old: str
+    new: str
