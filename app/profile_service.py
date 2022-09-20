@@ -182,4 +182,18 @@ def search(full_name: str):
     return map_db_dto(profiles_db)
 
 
+def searchPublic(full_name: str):
+    names = full_name.split()
+    print(names)
+    users_db = local_session.query(Userdb).filter(Userdb.ime.contains(names[0]))
+    if full_name == "":
+        return get_all_profiles()
+    if len(names) == 2:
+        users_db = local_session.query(Userdb).filter(Userdb.ime.contains(names[0]),
+                                                      Userdb.prezime.contains(names[1]))
+    profiles_db = []
+    for user in users_db:
+        if not user.profile.private:
+            profiles_db.append(user.profile)
+    return map_db_dto(profiles_db)
 

@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from app.profile_service import Profile,\
-    get_all_profiles, get_public_profiles, get_follower_profiles, get_following_profiles, update_profile, search
+    get_all_profiles, get_public_profiles, get_follower_profiles, get_following_profiles, update_profile, search, searchPublic
 from typing import List
 
 router = APIRouter()
@@ -34,3 +34,7 @@ async def following_profiles(profile_id):
 @router.get("/profiles/{name}", response_model=List[Profile], tags=["profile"])
 async def search_profiles(name: str):
     return search(name)
+
+@router.get("/public-profiles/{name}", response_model=List[Profile], tags=["profile"])
+async def search_public_profiles(name: str):
+    return searchPublic(name)
