@@ -69,3 +69,12 @@ class Skill(Base):
     profile_id = Column(Integer, ForeignKey("profiles.id"))
     profile = relationship("Profile", back_populates="skills")
 
+
+class FollowRequest(Base):
+    __tablename__ = "requests"
+    id = Column(Integer(), primary_key=True)
+    follower_id = Column("follower_id", Integer)
+    following_id = Column("following_id", Integer)
+    accepted = Column("accepted", Boolean)
+
+
