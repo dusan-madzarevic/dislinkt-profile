@@ -5,6 +5,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from starlette.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi import Request
+import httpx
 
 import models
 from database import local_session, engine
@@ -12,7 +13,7 @@ from dto import UserDTO
 from models import User, Profile, Education, Skill
 from routers import auth, profile, follow
 
-from users import UserCreate, ProfileCreate, ProfileEdit, EducationCreate, SkillCreate, PasswordChange
+from users import UserCreate, ProfileCreate, ProfileEdit, EducationCreate, SkillCreate, PasswordChange, ProfileUser
 from userform import UserCreateForm
 from routers.auth import verify_password
 
@@ -112,6 +113,24 @@ async def register(request: UserCreate):
     local_session.commit()
     user_id = user.id
     print(user_id)
+
+    profile_user = ProfileUser()
+    profile_user.id = user_id
+    profile_user.username = request.username
+    profile_user.email = request.email
+    profile_user.password = hashedpassword
+    profile_user.ime = request.ime
+    profile_user.prezime = request.prezime
+    profile_user.telefon = request.telefon
+    profile_user.datumRodjenja = datetime.date(date_time_obj)
+    profile_user.pol = request.pol
+
+
+    # dobavi prvo pratioce iz mikroservisa sa profilima
+    async with httpx.AsyncClient() as client:
+        response = await client.post("http://localhost:8000/register", profile_user)
+        print(response)
+
 
     return {
         "user_id": user_id,
