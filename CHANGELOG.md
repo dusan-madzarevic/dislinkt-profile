@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.4.0 (2022-09-20)
+### Feature
+* Create post ([`a78cabc`](https://github.com/dusan-madzarevic/dislinkt-profile/commit/a78cabc2fe29874615ef0a93acba8b4c4346bacc))
+
 ## v0.3.0 (2022-09-20)
 ### Feature
 * Posts view ([`021f9c4`](https://github.com/dusan-madzarevic/dislinkt-profile/commit/021f9c44c6d78b5cc732354ae31b6eee0bce69a9))
