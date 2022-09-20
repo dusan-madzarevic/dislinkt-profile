@@ -10,7 +10,7 @@ import models
 from database import local_session, engine
 from dto import UserDTO
 from models import User, Profile, Education, Skill
-from routers import auth
+from routers import auth, profile, follow
 
 from users import UserCreate, ProfileCreate, ProfileEdit, EducationCreate, SkillCreate, PasswordChange
 from userform import UserCreateForm
@@ -33,7 +33,8 @@ app.add_middleware(
 )
 
 app.include_router(auth.router)
-# app.include_router(route_users.router)
+app.include_router(profile.router)
+app.include_router(follow.router)
 
 
 @app.get("/")
@@ -327,12 +328,15 @@ async def change_password(request: PasswordChange):
             "message": "invalid old password"
         }
     else:
-        local_session.query(User).filter_by(id=user_id).update({"password": request.new})
+        hashedpassword = auth.get_password_hash(request.new)
+        user.password = hashedpassword
+        local_session.query(User).filter_by(id=user_id).update({"password": hashedpassword})
         local_session.commit()
         return {
             "code": "success",
             "message": "update successful"
         }
+
 
 
 
@@ -343,6 +347,7 @@ def print_hi(name):
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
+    print(auth.get_password_hash("asd"))
     models.Base.metadata.create_all(engine)
     uvicorn.run(app, port=8001, host="0.0.0.0")
 
