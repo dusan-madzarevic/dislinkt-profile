@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.3.0 (2022-09-20)
+### Feature
+* Posts view ([`021f9c4`](https://github.com/dusan-madzarevic/dislinkt-profile/commit/021f9c44c6d78b5cc732354ae31b6eee0bce69a9))
+
 ## v0.2.0 (2022-09-19)
 ### Feature
 * Update skills for user profile ([`e88a348`](https://github.com/dusan-madzarevic/dislinkt-profile/commit/e88a348cf8c4537a9f8ad0cb9e4480a58ee9f8f7))
